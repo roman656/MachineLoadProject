@@ -6,8 +6,8 @@ namespace MachineLoadProject;
 public class Factory
 {
     private const uint MachinesAmount = 4;
-    private const uint StopTime = 5 * 60 + 95;
-    private readonly uint[] _machinesOperationExecutionTime = { 5 * 60, 5 * 60, 5 * 60, 20 * 60 };
+    private const uint StopTime = 20 * 60;
+    private readonly uint[] _machinesOperationExecutionTime = { 18 * 60, 10 * 60, 3 * 60, 20 * 60 };
     private readonly uint[] _machinesMaintenanceTime = { 60, 60, 60, 60 };
     private readonly float[] _distanceToMachines = { 5.0f, 5.0f, 5.0f, 5.0f };
     private readonly Robot _robot = new (speed: 1.0f, clockTableInteractionTime: 30);
@@ -52,7 +52,14 @@ public class Factory
             }
         }
 
-        return nearestEventTime + _globalTime;
+        nearestEventTime += _globalTime;
+
+        if (nearestEventTime > StopTime)
+        {
+            nearestEventTime = StopTime;
+        }
+
+        return nearestEventTime;
     }
 
     private void MoveToTime(uint time)
