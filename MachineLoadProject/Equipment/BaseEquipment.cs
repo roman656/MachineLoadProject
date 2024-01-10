@@ -7,6 +7,7 @@ public abstract class BaseEquipment : IEquipment
     public string Id { get; } = Ulid.NewUlid().ToString()!;
     public abstract bool IsBusy { get; }
     public uint CurrentTaskRemainingTime { get; protected set; }
+    public uint CompletedTasksAmount { get; protected set; }
     public Statistics Statistics { get; } = new ();
 
     public void Start() => State = EquipmentState.Working;

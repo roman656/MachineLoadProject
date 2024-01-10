@@ -25,6 +25,7 @@ public class Machine : BaseEquipment
 
         if (State == EquipmentState.Idle && prevState == EquipmentState.Working)
         {
+            CompletedTasksAmount++;
             OnOperationFinished(new OperationFinishedEventArgs(machineId: Id));
         }
     }

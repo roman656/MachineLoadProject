@@ -8,6 +8,6 @@ public static class Program
     {
         Factory.Start();
         Factory.Process();
-        Factory.PrintResults();
+        Factory.PrintShortReport();
     }
 }

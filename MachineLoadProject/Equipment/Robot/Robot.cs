@@ -79,6 +79,7 @@ public class Robot : BaseEquipment
             case MaintenanceState.ClockTableInteraction:
             {
                 _maintenanceRequest = null;
+                CompletedTasksAmount++;
 
                 break;
             }

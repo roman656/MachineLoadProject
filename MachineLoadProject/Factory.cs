@@ -6,11 +6,13 @@ namespace MachineLoadProject;
 public class Factory
 {
     private const uint MachinesAmount = 4;
-    private const uint StopTime = 20 * 60;
-    private readonly uint[] _machinesOperationExecutionTime = { 18 * 60, 10 * 60, 3 * 60, 20 * 60 };
-    private readonly uint[] _machinesMaintenanceTime = { 60, 60, 60, 60 };
-    private readonly float[] _distanceToMachines = { 5.0f, 5.0f, 5.0f, 5.0f };
-    private readonly Robot _robot = new (speed: 1.0f, clockTableInteractionTime: 30);
+    private const uint StopTime = 60 * 60 * 8;
+    private const uint ClockTableInteractionTime = 10;
+    private const float RobotMovementSpeed = 0.4f;
+    private readonly uint[] _machinesOperationExecutionTime = { 3 * 60, 5 * 60, 7 * 60, 14 * 60 };
+    private readonly uint[] _machinesMaintenanceTime = { 30, 60, 30, 60 };
+    private readonly float[] _distanceToMachines = { 5.0f, 7.0f, 9.0f, 11.0f };
+    private readonly Robot _robot = new (RobotMovementSpeed, ClockTableInteractionTime);
     private readonly Machine[] _machines = new Machine[MachinesAmount];
     private readonly Queue<MaintenanceRequest> _maintenanceRequestQueue = new ();
     private uint _globalTime;
@@ -43,12 +45,17 @@ public class Factory
     private uint FindNearestEventTime()
     {
         var nearestEventTime = _robot.CurrentTaskRemainingTime;
-        
-        foreach (var machine in _machines)
+
+        if (nearestEventTime == 0)
         {
-            if (nearestEventTime == 0 || nearestEventTime > machine.CurrentTaskRemainingTime)
+            nearestEventTime = _machines[0].CurrentTaskRemainingTime;
+            
+            foreach (var machine in _machines)
             {
-                nearestEventTime = machine.CurrentTaskRemainingTime;
+                if (nearestEventTime > machine.CurrentTaskRemainingTime)
+                {
+                    nearestEventTime = machine.CurrentTaskRemainingTime;
+                }
             }
         }
 
@@ -64,12 +71,14 @@ public class Factory
 
     private void MoveToTime(uint time)
     {
-        _robot.ProcessCurrentTask(time - _globalTime);
+        var timeDelta = time - _globalTime;
         
         foreach (var machine in _machines)
         {
-            machine.ProcessCurrentTask(time - _globalTime);
+            machine.ProcessCurrentTask(timeDelta);
         }
+        
+        _robot.ProcessCurrentTask(timeDelta);
 
         _globalTime = time;
     }
@@ -90,14 +99,45 @@ public class Factory
         }
     }
     
-    public void PrintResults()
+    public void PrintReport()
     {
+        Console.WriteLine($"Количество станков: {MachinesAmount}");
+        Console.WriteLine($"Время смены: {StopTime}");
+        
+        Console.WriteLine("\nРобот:");
+        Console.WriteLine($"  Время взаимодействия с тактовым столом: {ClockTableInteractionTime}");
+        Console.WriteLine($"  Скорость движения: {RobotMovementSpeed}");
+        Console.WriteLine($"  Работал: {_robot.Statistics.WorkingTime}");
+        Console.WriteLine($"  Простаивал: {_robot.Statistics.IdleTime}");
+        Console.WriteLine($"  Коэффициент загрузки: {_robot.Statistics.LoadFactor}");
+        Console.WriteLine($"  Количество обслуживаний станков: {_robot.CompletedTasksAmount}");
+        
         for (var index = 0; index < MachinesAmount; index++)
         {
-            Console.WriteLine($"Коэффициент загрузки {index + 1}-го станка: {_machines[index].Statistics.LoadFactor}.\tРаботал {_machines[index].Statistics.WorkingTime} из {_machines[index].Statistics.TotalTime} секунд");
+            Console.WriteLine($"\nСтанок №{index + 1}:");
+            Console.WriteLine($"  Расстояние до станка: {_distanceToMachines[index]}");
+            Console.WriteLine($"  Время выполнения технологической операции: {_machinesOperationExecutionTime[index]}");
+            Console.WriteLine($"  Время обслуживания: {_machinesMaintenanceTime[index]}");
+            Console.WriteLine($"  Работал: {_machines[index].Statistics.WorkingTime}");
+            Console.WriteLine($"  Простаивал: {_machines[index].Statistics.IdleTime}");
+            Console.WriteLine($"  Коэффициент загрузки: {_machines[index].Statistics.LoadFactor}");
+            Console.WriteLine($"  Количество произведенных деталей: {_machines[index].CompletedTasksAmount}");
         }
+    }
     
-        Console.WriteLine($"Коэффициент загрузки робота: {_robot.Statistics.LoadFactor}. Работал {_robot.Statistics.WorkingTime} из {_robot.Statistics.TotalTime} секунд");
+    public void PrintShortReport()
+    {
+        Console.WriteLine($"Время смены: {StopTime}");
+        Console.Write($"Коэффициент загрузки робота:      {_robot.Statistics.LoadFactor:F}");
+        Console.Write($"  Работал / Простаивал: {_robot.Statistics.WorkingTime} / {_robot.Statistics.IdleTime}");
+        Console.WriteLine($"  Количество обслуживаний станков:  {_robot.CompletedTasksAmount}");
+        
+        for (var index = 0; index < MachinesAmount; index++)
+        {
+            Console.Write($"Коэффициент загрузки {index + 1}-го станка: {_machines[index].Statistics.LoadFactor:F}");
+            Console.Write($"  Работал / Простаивал: {_machines[index].Statistics.WorkingTime} / {_machines[index].Statistics.IdleTime}");
+            Console.WriteLine($"  Количество произведенных деталей: {_machines[index].CompletedTasksAmount}");
+        }
     }
 
     private void OnMachineOperationFinished(object sender, OperationFinishedEventArgs args)
