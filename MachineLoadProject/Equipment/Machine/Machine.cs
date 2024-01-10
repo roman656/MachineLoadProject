@@ -3,6 +3,8 @@ namespace MachineLoadProject.Equipment.Machine;
 public class Machine : BaseEquipment
 {
     private readonly uint _operationExecutionTime;
+    public readonly uint MaintenanceTime;
+    
     public delegate void OperationFinishedEventHandler(object sender, OperationFinishedEventArgs args);
     public event OperationFinishedEventHandler? OperationFinished;
     
@@ -12,8 +14,7 @@ public class Machine : BaseEquipment
         MaintenanceTime = maintenanceTime;
         PrepareForNextOperation();
     }
-
-    public uint MaintenanceTime { get; }
+    
     public override bool IsBusy => CurrentTaskRemainingTime != 0;
     
     public override void ProcessCurrentTask(uint time)

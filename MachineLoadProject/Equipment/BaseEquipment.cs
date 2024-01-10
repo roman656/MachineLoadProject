@@ -3,6 +3,7 @@ namespace MachineLoadProject.Equipment;
 public abstract class BaseEquipment : IEquipment
 {
     protected EquipmentState State = EquipmentState.Idle;
+    
     public string Id { get; } = Ulid.NewUlid().ToString()!;
     public abstract bool IsBusy { get; }
     public uint CurrentTaskRemainingTime { get; protected set; }
